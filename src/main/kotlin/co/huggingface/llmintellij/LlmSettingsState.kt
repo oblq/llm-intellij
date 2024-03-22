@@ -9,7 +9,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 
 class LspSettings {
     var binaryPath: String? = null
-    var version: String = "0.4.0"
+    var version: String = "0.5.2"
     var logLevel: String = "warn"
 }
 
@@ -28,6 +28,30 @@ class QueryParams(
     var stop_tokens: List<String>? = null,
 )
 
+enum class BackendType {
+    HUGGINGFACE,
+    OLLAMA,
+    OPENAI,
+    TGI;
+
+    override fun toString(): String {
+        return name.lowercase()
+    }
+
+    companion object {
+        fun fromString(name: String?): BackendType? {
+            if (name == null) {
+                return null
+            }
+            return try {
+                valueOf(name.uppercase())
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+    }
+}
+
 sealed class TokenizerConfig {
     data class Local(val path: String) : TokenizerConfig()
     data class HuggingFace(val repository: String) : TokenizerConfig()
@@ -40,14 +64,16 @@ sealed class TokenizerConfig {
 )
 class LlmSettingsState: PersistentStateComponent<LlmSettingsState?> {
     var ghostTextEnabled = true
-    var model: String = "bigcode/starcoder"
-    var tokensToClear: List<String> = listOf("<|endoftext|>")
+    var backendType: BackendType = BackendType.HUGGINGFACE
+    var endpoint: String = "http://localhost:3715/v1/completions"
+    var model: String = "bigcode/starcoder2-15b"
+    var tokensToClear: String = "<|endoftext|>,<file_sep>"
     var queryParams = QueryParams()
     var fim = FimParams()
     var tlsSkipVerifyInsecure = false
     var lsp = LspSettings()
-    var tokenizer: TokenizerConfig? = TokenizerConfig.HuggingFace("bigcode/starcoder")
-    var contextWindow = 8192u
+    var tokenizer: TokenizerConfig? = TokenizerConfig.HuggingFace("bigcode/starcoder2-15b")
+    var contextWindow = 16384u
 
     override fun getState(): LlmSettingsState {
         return this

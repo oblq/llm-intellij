@@ -27,7 +27,9 @@ class LlmSettingsConfigurable : Configurable {
     override fun isModified(): Boolean {
         val settings: LlmSettingsState = LlmSettingsState.instance
         var modified: Boolean = settingsComponent?.isGhostTextEnabled() != settings.ghostTextEnabled
-        modified = modified or (settingsComponent?.getModelIdOrEndpoint() != settings.model)
+        modified = modified or (settingsComponent?.getBackendType() != settings.backendType)
+        modified = modified or (settingsComponent?.getLLMServerEndpoint() != settings.endpoint)
+        modified = modified or (settingsComponent?.getModelId() != settings.model)
         modified = modified or (settingsComponent?.getTokensToClear() != settings.tokensToClear)
         modified = modified or (settingsComponent?.getMaxNewTokens() != settings.queryParams.max_new_tokens)
         modified = modified or (settingsComponent?.getTemperature() != settings.queryParams.temperature)
@@ -48,9 +50,11 @@ class LlmSettingsConfigurable : Configurable {
 
     override fun apply() {
         val settings: LlmSettingsState = LlmSettingsState.instance
-        settings.ghostTextEnabled = settingsComponent?.isGhostTextEnabled() ?: false
-        settings.model = settingsComponent?.getModelIdOrEndpoint() ?: ""
-        settings.tokensToClear = settingsComponent?.getTokensToClear() ?: emptyList()
+        settings.ghostTextEnabled = settingsComponent?.isGhostTextEnabled() ?: true
+        settings.backendType = settingsComponent?.getBackendType() ?: BackendType.HUGGINGFACE
+        settings.endpoint = settingsComponent?.getLLMServerEndpoint() ?: ""
+        settings.model = settingsComponent?.getModelId() ?: ""
+        settings.tokensToClear = settingsComponent?.getTokensToClear() ?: ""
         settings.queryParams.max_new_tokens = settingsComponent?.getMaxNewTokens() ?: 0u
         settings.queryParams.temperature = settingsComponent?.getTemperature() ?: 0f
         settings.queryParams.top_p = settingsComponent?.getTopP() ?: 0f
@@ -70,7 +74,9 @@ class LlmSettingsConfigurable : Configurable {
     override fun reset() {
         val settings: LlmSettingsState = LlmSettingsState.instance
         settingsComponent?.setGhostTextStatus(settings.ghostTextEnabled)
-        settingsComponent?.setModelIdOrEndpoint(settings.model)
+        settingsComponent?.setBackendType(settings.backendType)
+        settingsComponent?.setLLMServerEndpoint(settings.endpoint)
+        settingsComponent?.setModelId(settings.model)
         settingsComponent?.setTokensToClear(settings.tokensToClear)
         settingsComponent?.setMaxNewTokens(settings.queryParams.max_new_tokens)
         settingsComponent?.setTemperature(settings.queryParams.temperature)

@@ -21,6 +21,10 @@ class LlmSettingsComponent {
     val rootPanel: JPanel = JPanel()
     private val apiTokenLabel: JBLabel
     private val apiToken: JBPasswordField
+    private val backendTypeLabel: JBLabel
+    private val backendType: JComboBox<String>
+    private val endpointLabel: JBLabel
+    private val endpoint: JBTextField
     private val modelLabel: JBLabel
     private val model: JBTextField
     private val tokensToClearLabel: JBLabel
@@ -92,15 +96,24 @@ class LlmSettingsComponent {
         })
         modelSectionPanel.add(apiTokenLabel)
         modelSectionPanel.add(apiToken)
-        modelLabel = JBLabel("Model or endpoint url")
-        model = JBTextField("bigcode/starcoder")
+        backendTypeLabel = JBLabel("Backend type")
+        backendType = JComboBox(BackendType.entries.map { it.name }.toTypedArray())
+        backendType.selectedItem = BackendType.OPENAI.name
+        modelSectionPanel.add(backendTypeLabel)
+        modelSectionPanel.add(backendType)
+        endpointLabel = JBLabel("LLM server endpoint")
+        endpoint = JBTextField("http://localhost:3715/v1/completions")
+        modelSectionPanel.add(endpointLabel)
+        modelSectionPanel.add(endpoint)
+        modelLabel = JBLabel("Model")
+        model = JBTextField("bigcode/starcoder2-15b")
         modelSectionPanel.add(modelLabel)
         modelSectionPanel.add(model)
         tokensToClearLabel = JBLabel("Tokens to clear (Comma-separated List)")
-        tokensToClear = JBTextField("<|endoftext|>")
+        tokensToClear = JBTextField("<|endoftext|>,<file_sep>")
         modelSectionPanel.add(tokensToClearLabel)
         modelSectionPanel.add(tokensToClear)
-        tlsSkipVerifyInsecure = JBCheckBox("TLS skip verify insecure")
+        tlsSkipVerifyInsecure = JBCheckBox("TLS skip verify insecure", true)
         modelSectionPanel.add(tlsSkipVerifyInsecure)
 
         val queryParamsSubsectionPanel = createSectionPanel("Query Params", modelSectionPanel)
@@ -123,7 +136,7 @@ class LlmSettingsComponent {
 
         val promptSectionPanel = createSectionPanel("Prompt", rootPanel)
         contextWindowLabel = JBLabel("Context window")
-        contextWindow = JBTextField("8192")
+        contextWindow = JBTextField("16384")
         promptSectionPanel.add(contextWindowLabel)
         promptSectionPanel.add(contextWindow)
 
@@ -174,7 +187,7 @@ class LlmSettingsComponent {
         tokenizerSubsectionPanel.add(tokenizerConfigLocalPath)
 
         tokenizerConfigHuggingFaceRepositoryLabel = JBLabel("Repository")
-        tokenizerConfigHuggingFaceRepository = JBTextField("bigcode/starcoder")
+        tokenizerConfigHuggingFaceRepository = JBTextField("bigcode/starcoder2-15b")
         tokenizerSubsectionPanel.add(tokenizerConfigHuggingFaceRepositoryLabel)
         tokenizerSubsectionPanel.add(tokenizerConfigHuggingFaceRepository)
 
@@ -210,7 +223,7 @@ class LlmSettingsComponent {
         llmLsSubsectionPanel.add(lspBinaryPathLabel)
         llmLsSubsectionPanel.add(lspBinaryPath)
         lspVersionLabel = JBLabel("Version")
-        lspVersion = JBTextField("0.4.0")
+        lspVersion = JBTextField("0.5.2")
         llmLsSubsectionPanel.add(lspVersionLabel)
         llmLsSubsectionPanel.add(lspVersion)
         lspLogLevelLabel = JBLabel("Log level")
@@ -231,29 +244,36 @@ class LlmSettingsComponent {
         enableGhostText.setSelected(enabled)
     }
 
-    fun getModelIdOrEndpoint(): String {
+    fun getBackendType(): BackendType {
+        return BackendType.fromString(backendType.selectedItem as String?) ?: BackendType.HUGGINGFACE
+    }
+
+    fun setBackendType(value: BackendType) {
+        backendType.selectedItem = value.name
+    }
+
+    fun getLLMServerEndpoint(): String {
+        return endpoint.text
+    }
+
+    fun setLLMServerEndpoint(value: String) {
+        endpoint.text = value
+    }
+
+    fun getModelId(): String {
         return model.text
     }
 
-    fun setModelIdOrEndpoint(value: String) {
+    fun setModelId(value: String) {
         model.text = value
     }
 
-    fun getTokensToClear(): List<String>? {
-        val tokensStr = tokensToClear.text
-        return if (tokensStr == "") {
-            null
-        }else {
-            tokensStr.split(",")
-        }
+    fun getTokensToClear(): String {
+        return tokensToClear.text
     }
 
-    fun setTokensToClear(tokens: List<String>?) {
-        if (tokens == null) {
-            tokensToClear.text = null
-        } else {
-            tokensToClear.text = tokens.joinToString(",")
-        }
+    fun setTokensToClear(tokens: String) {
+        tokensToClear.text = tokens
     }
 
     fun getMaxNewTokens(): UInt {

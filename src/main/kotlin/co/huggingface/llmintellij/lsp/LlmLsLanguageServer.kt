@@ -1,5 +1,6 @@
 package co.huggingface.llmintellij.lsp
 
+import co.huggingface.llmintellij.BackendType
 import co.huggingface.llmintellij.FimParams
 import co.huggingface.llmintellij.QueryParams
 import co.huggingface.llmintellij.TokenizerConfig
@@ -13,18 +14,21 @@ data class Position(
     val line: Int,
     val character: Int
 )
+
 class CompletionParams(
     val textDocument: TextDocumentIdentifier,
     val position: Position,
-    val request_params: QueryParams,
+    val requestBody: QueryParams,
     val ide: String = "jetbrains",
     val fim: FimParams,
-    val api_token: String?,
+    val apiToken: String?,
     val model: String,
-    val tokens_to_clear: List<String>,
-    val tokenizer_config: TokenizerConfig?,
-    val context_window: UInt,
-    val tls_skip_verify_insecure: Boolean = false,
+    val backend: String = BackendType.HUGGINGFACE.toString(),
+    val url: String?,
+    val tokensToClear: List<String>,
+    val tokenizerConfig: TokenizerConfig?,
+    val contextWindow: UInt,
+    val tlsSkipVerifyInsecure: Boolean = false
 )
 
 @JsonSegment("llm-ls")

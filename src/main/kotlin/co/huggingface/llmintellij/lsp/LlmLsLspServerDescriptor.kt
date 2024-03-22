@@ -8,7 +8,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
 import io.ktor.util.*
 import org.eclipse.lsp4j.services.LanguageServer
-import java.io.File
+import java.io.*
+import java.net.*
+import java.nio.file.Files
+import java.util.zip.GZIPInputStream
+import kotlin.io.path.Path
+import kotlin.io.path.deleteIfExists
 
 class LlmLsLspServerDescriptor(project: Project) : ProjectWideLspServerDescriptor(project, "LlmLs") {
     private val logger = Logger.getInstance("llmLsLspServerDescriptor")
@@ -19,6 +24,7 @@ class LlmLsLspServerDescriptor(project: Project) : ProjectWideLspServerDescripto
         val settings = LlmSettingsState.instance
         val binaryPath = downloadLlmLs(logger, settings.lsp.binaryPath, settings.lsp.version) ?: throw Error("llm-ls binary path is not set")
         settings.lsp.binaryPath = binaryPath
+        logger.info("llm-ls binary path: $binaryPath")
         return GeneralCommandLine().apply {
             exePath = binaryPath
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
@@ -56,7 +62,10 @@ fun isUnix(os: String): Boolean {
 
 fun buildBinaryName(logger: Logger): String? {
     val os = System.getProperty("os.name")
-    val arch = System.getProperty("os.arch")
+    var arch = System.getProperty("os.arch")
+    if (arch == "amd64") {
+        arch = "x86_64"
+    }
 
     var osSuffix: String? = null
     if (isMac(os)) {
@@ -79,29 +88,110 @@ fun buildUrl(binName: String, version: String): String {
     return "https://github.com/huggingface/llm-ls/releases/download/$version/$binName.gz"
 }
 
-fun downloadAndUnzip(url: String, binDir: File, binName: String, fullPath: String) {
-    val path = File(binDir, binName).absolutePath
-    val downloadCommand = "curl -L -o $path.gz $url"
-    val unzipCommand = "gunzip $path.gz"
-    val renameCommand = "mv $path $fullPath"
-    val chmodCommand = "chmod +x $fullPath"
-    val cleanZipCommand = "rm $path.gz"
+fun downloadFile(logger: Logger, urlString: String, outputPath: String) {
+    try {
+        val url = URL(urlString)
 
-    runCommand(downloadCommand)
-    runCommand(unzipCommand)
-    runCommand(renameCommand)
-    runCommand(chmodCommand)
-    runCommand(cleanZipCommand)
+        // Open a connection
+        val connection = url.openConnection() as HttpURLConnection
+
+        // Set up connection properties
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 5000 // Adjust timeout as needed
+
+        // Connect to the URL
+        connection.connect()
+
+        // Check if the connection is successful (HTTP 200 OK)
+        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+            // Open input stream from the connection
+            val inputStream = connection.inputStream
+
+            // Create output stream to write the file
+            val outputStream = FileOutputStream(outputPath)
+
+            // Buffer for reading from input stream
+            val buffer = ByteArray(1024)
+            var bytesRead: Int
+
+            // Read from input stream and write to output stream
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+
+            // Close streams
+            inputStream.close()
+            outputStream.close()
+
+            logger.info("File downloaded successfully.")
+        } else {
+            logger.error("Failed to download file. Response Code: ${connection.responseCode}")
+        }
+
+        // Disconnect the connection
+        connection.disconnect()
+    } catch (e: Exception) {
+        logger.error("Error: ${e.message}")
+    }
 }
 
-fun runCommand(command: String) {
-    val process = Runtime.getRuntime().exec(command)
+fun downloadAndUnzip(logger: Logger, url: String, binDir: File, binName: String, targetPath: String) {
+    val extractedBinPath = File(binDir, binName).absolutePath
+    val zipPath = "$extractedBinPath.gz"
 
-    process.waitFor()
+    downloadFile(logger, url, zipPath)
+
+    try {
+        val inputByteStream = FileInputStream(zipPath)
+        val outputByteStream = FileOutputStream(extractedBinPath)
+
+        outputByteStream.write(GZIPInputStream(inputByteStream).use { it.readBytes() })
+        inputByteStream.close()
+        outputByteStream.close()
+        logger.info("Successfully extracted llm-ls")
+    } catch (e: Exception)
+    {
+        logger.error("Gzip exception: $e")
+    }
+
+    try {
+        Files.move(Path(extractedBinPath), Path(targetPath))
+    } catch (e: Exception) {
+        logger.error("Move failed: $e")
+    }
+
+    try {
+        Path(targetPath).toFile().setExecutable(true, false)
+    } catch (e: Exception) {
+        logger.error("Set file permissions failed: $e")
+    }
+
+    Path(zipPath).deleteIfExists()
 }
+
+//fun runCommand(command: String) {
+//    val process = Runtime.getRuntime().exec(command)
+//
+//    process.waitFor()
+//}
+//
+//fun downloadAndUnzip(url: String, binDir: File, binName: String, fullPath: String) {
+//    val path = File(binDir, binName).absolutePath
+//    val downloadCommand = "curl -L -o $path.gz $url"
+//    val unzipCommand = "gunzip $path.gz"
+//    val renameCommand = "mv $path $fullPath"
+//    val chmodCommand = "chmod +x $fullPath"
+//    val cleanZipCommand = "rm $path.gz"
+//
+//    runCommand(downloadCommand)
+//    runCommand(unzipCommand)
+//    runCommand(renameCommand)
+//    runCommand(chmodCommand)
+//    runCommand(cleanZipCommand)
+//}
 
 fun downloadLlmLs(logger: Logger, binaryPath: String?, version: String): String? {
-    if (binaryPath != null && binaryPath.endsWith(version) && File(binaryPath).exists()) {
+    if (binaryPath != null && File(binaryPath).exists()) {
         return binaryPath
     }
 
@@ -114,7 +204,7 @@ fun downloadLlmLs(logger: Logger, binaryPath: String?, version: String): String?
 
     if (!fullPath.exists()) {
         val url = buildUrl(binName, version)
-        downloadAndUnzip(url, binDir, binName, fullPath.absolutePath)
+        downloadAndUnzip(logger, url, binDir, binName, fullPath.absolutePath)
         logger.info("Successfully downloaded llm-ls")
     }
 

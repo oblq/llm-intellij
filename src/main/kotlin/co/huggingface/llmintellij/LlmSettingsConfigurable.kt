@@ -28,7 +28,7 @@ class LlmSettingsConfigurable : Configurable {
         val settings: LlmSettingsState = LlmSettingsState.instance
         var modified: Boolean = settingsComponent?.isGhostTextEnabled() != settings.ghostTextEnabled
         modified = modified or (settingsComponent?.getBackendType() != settings.backendType)
-        modified = modified or (settingsComponent?.getLLMServerEndpoint() != settings.endpoint)
+        modified = modified or (settingsComponent?.getLLMServerURL() != settings.url)
         modified = modified or (settingsComponent?.getModelId() != settings.model)
         modified = modified or (settingsComponent?.getTokensToClear() != settings.tokensToClear)
         modified = modified or (settingsComponent?.getMaxNewTokens() != settings.queryParams.max_new_tokens)
@@ -52,12 +52,12 @@ class LlmSettingsConfigurable : Configurable {
         val settings: LlmSettingsState = LlmSettingsState.instance
         settings.ghostTextEnabled = settingsComponent?.isGhostTextEnabled() ?: true
         settings.backendType = settingsComponent?.getBackendType() ?: BackendType.HUGGINGFACE
-        settings.endpoint = settingsComponent?.getLLMServerEndpoint() ?: ""
+        settings.url = settingsComponent?.getLLMServerURL()
         settings.model = settingsComponent?.getModelId() ?: ""
         settings.tokensToClear = settingsComponent?.getTokensToClear() ?: ""
-        settings.queryParams.max_new_tokens = settingsComponent?.getMaxNewTokens() ?: 0u
-        settings.queryParams.temperature = settingsComponent?.getTemperature() ?: 0f
-        settings.queryParams.top_p = settingsComponent?.getTopP() ?: 0f
+        settings.queryParams.max_new_tokens = settingsComponent?.getMaxNewTokens()
+        settings.queryParams.temperature = settingsComponent?.getTemperature()
+        settings.queryParams.top_p = settingsComponent?.getTopP()
         settings.queryParams.stop_tokens = settingsComponent?.getStopTokens()
         settings.fim.enabled = settingsComponent?.isFimEnabled() ?: false
         settings.fim.prefix = settingsComponent?.getFimPrefix() ?: ""
@@ -75,13 +75,13 @@ class LlmSettingsConfigurable : Configurable {
         val settings: LlmSettingsState = LlmSettingsState.instance
         settingsComponent?.setGhostTextStatus(settings.ghostTextEnabled)
         settingsComponent?.setBackendType(settings.backendType)
-        settingsComponent?.setLLMServerEndpoint(settings.endpoint)
+        settingsComponent?.setLLMServerURL(settings.url)
         settingsComponent?.setModelId(settings.model)
         settingsComponent?.setTokensToClear(settings.tokensToClear)
         settingsComponent?.setMaxNewTokens(settings.queryParams.max_new_tokens)
         settingsComponent?.setTemperature(settings.queryParams.temperature)
         settingsComponent?.setTopP(settings.queryParams.top_p)
-        settingsComponent?.setStopTokens(settings.queryParams.stop_tokens ?: emptyList())
+        settingsComponent?.setStopTokens(settings.queryParams.stop_tokens)
         settingsComponent?.setFimStatus(settings.fim.enabled)
         settingsComponent?.setFimPrefix(settings.fim.prefix)
         settingsComponent?.setFimMiddle(settings.fim.middle)

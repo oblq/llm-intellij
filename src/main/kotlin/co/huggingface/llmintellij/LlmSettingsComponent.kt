@@ -23,8 +23,8 @@ class LlmSettingsComponent {
     private val apiToken: JBPasswordField
     private val backendTypeLabel: JBLabel
     private val backendType: JComboBox<String>
-    private val endpointLabel: JBLabel
-    private val endpoint: JBTextField
+    private val urlLabel: JBLabel
+    private val url: JBTextField
     private val modelLabel: JBLabel
     private val model: JBTextField
     private val tokensToClearLabel: JBLabel
@@ -101,10 +101,10 @@ class LlmSettingsComponent {
         backendType.selectedItem = BackendType.OPENAI.name
         modelSectionPanel.add(backendTypeLabel)
         modelSectionPanel.add(backendType)
-        endpointLabel = JBLabel("LLM server endpoint")
-        endpoint = JBTextField("http://localhost:3715/v1/completions")
-        modelSectionPanel.add(endpointLabel)
-        modelSectionPanel.add(endpoint)
+        urlLabel = JBLabel("LLM server url")
+        url = JBTextField("http://localhost:3715/v1/completions")
+        modelSectionPanel.add(urlLabel)
+        modelSectionPanel.add(url)
         modelLabel = JBLabel("Model")
         model = JBTextField("bigcode/starcoder2-15b")
         modelSectionPanel.add(modelLabel)
@@ -245,19 +245,19 @@ class LlmSettingsComponent {
     }
 
     fun getBackendType(): BackendType {
-        return BackendType.fromString(backendType.selectedItem as String?) ?: BackendType.HUGGINGFACE
+        return BackendType.fromString(backendType.selectedItem?.toString()) ?: BackendType.HUGGINGFACE
     }
 
     fun setBackendType(value: BackendType) {
         backendType.selectedItem = value.name
     }
 
-    fun getLLMServerEndpoint(): String {
-        return endpoint.text
+    fun getLLMServerURL(): String? {
+        return if (url.text.length == 0) null else url.text
     }
 
-    fun setLLMServerEndpoint(value: String) {
-        endpoint.text = value
+    fun setLLMServerURL(value: String?) {
+        url.text = value ?: ""
     }
 
     fun getModelId(): String {
@@ -277,51 +277,40 @@ class LlmSettingsComponent {
     }
 
     fun getMaxNewTokens(): UInt? {
-        return if (maxNewTokens.text.isNotEmpty()) {
-            maxNewTokens.text.toUInt()
-        } else {
-            return null
-        }
+        return if (maxNewTokens.text.isEmpty()) null else maxNewTokens.text.toUInt()
     }
 
     fun setMaxNewTokens(value: UInt?) {
-        if (value == null) {
-            maxNewTokens.text = ""
-        } else {
-            maxNewTokens.text = value.toString()
-        }
+        maxNewTokens.text = value?.toString() ?: ""
     }
 
     fun getTemperature(): Float? {
-        return if (temperature.text.isNotEmpty()) {
-            temperature.text.toFloat()
+        return if (temperature.text.isEmpty()) null else temperature.text.toFloat()
+
+    }
+
+    fun setTemperature(value: Float?) {
+        temperature.text = value?.toString() ?: ""
+    }
+
+    fun getTopP(): Float? {
+        return if (topP.text.isEmpty()) null else topP.text.toFloat()
+    }
+
+    fun setTopP(value: Float?) {
+        topP.text = value?.toString() ?: ""
+    }
+
+    fun getStopTokens(): List<String>? {
+        return if (stopTokens.text.length > 0) {
+            stopTokens.text.split(",")
         } else {
             null
         }
     }
 
-    fun setTemperature(value: Float?) {
-        if (value == null) {
-            temperature.text = ""
-        } else {
-            temperature.text = value.toString()
-        }
-    }
-
-    fun getTopP(): Float {
-        return topP.text.toFloat()
-    }
-
-     fun setTopP(value: Float) {
-        topP.text = value.toString()
-    }
-
-     fun getStopTokens(): String {
-        return stopTokens.text
-    }
-
-    fun setStopTokens(tokens: String) {
-        stopTokens.text = tokens
+    fun setStopTokens(tokens: List<String>?) {
+        stopTokens.text = tokens?.joinToString(",") ?: ""
     }
 
     fun isFimEnabled(): Boolean {
@@ -381,11 +370,10 @@ class LlmSettingsComponent {
     }
 
     fun getLspBinaryPath(): String? {
-        val binaryPath = lspBinaryPath.text
-        return if (binaryPath == "") {
+        return if (lspBinaryPath.text == "") {
             null
         } else {
-            binaryPath
+            lspBinaryPath.text
         }
     }
 
@@ -399,12 +387,15 @@ class LlmSettingsComponent {
             "Hugging Face" -> {
                 TokenizerConfig.HuggingFace(tokenizerConfigHuggingFaceRepository.text)
             }
+
             "Local" -> {
                 TokenizerConfig.Local(tokenizerConfigLocalPath.text)
             }
+
             "Download" -> {
                 TokenizerConfig.Download(tokenizerConfigDownloadUrl.text, tokenizerConfigDownloadTo.text)
             }
+
             else -> {
                 null
             }
@@ -428,6 +419,7 @@ class LlmSettingsComponent {
                 tokenizerConfigDownloadUrl.text = value.url
                 tokenizerConfigDownloadTo.text = value.to
             }
+
             null -> {
                 tokenizerConfig.selectedItem = "None"
             }

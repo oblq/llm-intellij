@@ -14,18 +14,18 @@ class LspSettings {
 }
 
 class FimParams(
-    var enabled: Boolean = true,
-    var prefix: String = "<fim_prefix>",
-    var middle: String = "<fim_middle>",
-    var suffix: String = "<fim_suffix>",
+        var enabled: Boolean = true,
+        var prefix: String = "<fim_prefix>",
+        var middle: String = "<fim_middle>",
+        var suffix: String = "<fim_suffix>",
 )
 
 class QueryParams(
-    var max_new_tokens: UInt? = 60u,
-    var temperature: Float? = 0.2f,
-    var do_sample: Boolean = temperature != null && temperature > 0.2,
-    var top_p: Float? = 0.95f,
-    var stop_tokens: List<String>? = null,
+        var max_new_tokens: UInt? = null,
+        var temperature: Float? = null,
+        var do_sample: Boolean = temperature != null && temperature > 0.2,
+        var top_p: Float? = 0.95f,
+        var stop_tokens: List<String>? = listOf("<|endoftext|>", "<file_sep>")
 )
 
 enum class BackendType {
@@ -59,18 +59,18 @@ sealed class TokenizerConfig {
 }
 
 @State(
-    name = "co.huggingface.llmintellij.LlmSettingsState",
-    storages = [Storage("LlmSettingsPlugin.xml")]
+        name = "co.huggingface.llmintellij.LlmSettingsState",
+        storages = [Storage("LlmSettingsPlugin.xml")]
 )
-class LlmSettingsState: PersistentStateComponent<LlmSettingsState?> {
+class LlmSettingsState : PersistentStateComponent<LlmSettingsState?> {
     var ghostTextEnabled = true
-    var backendType: BackendType = BackendType.HUGGINGFACE
-    var endpoint: String = "http://localhost:3715/v1/completions"
+    var backendType: BackendType = BackendType.OPENAI
+    var url: String? = "http://localhost:3715/v1/completions"
     var model: String = "bigcode/starcoder2-15b"
     var tokensToClear: String = "<|endoftext|>,<file_sep>"
     var queryParams = QueryParams()
     var fim = FimParams()
-    var tlsSkipVerifyInsecure = false
+    var tlsSkipVerifyInsecure = true
     var lsp = LspSettings()
     var tokenizer: TokenizerConfig? = TokenizerConfig.HuggingFace("bigcode/starcoder2-15b")
     var contextWindow = 16384u

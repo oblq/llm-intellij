@@ -1,11 +1,11 @@
 package co.huggingface.llmintellij
 
-import co.huggingface.llmintellij.lsp.*
-import com.intellij.codeInsight.inline.completion.InlineCompletionEvent
-import com.intellij.codeInsight.inline.completion.InlineCompletionProvider
-import com.intellij.codeInsight.inline.completion.InlineCompletionProviderID
-import com.intellij.codeInsight.inline.completion.InlineCompletionRequest
-import com.intellij.codeInsight.inline.completion.InlineCompletionSuggestion
+import co.huggingface.llmintellij.lsp.CompletionParams
+import co.huggingface.llmintellij.lsp.LlmLsGetCompletionsRequest
+import co.huggingface.llmintellij.lsp.LlmLsServerSupportProvider
+import co.huggingface.llmintellij.lsp.Position
+import com.google.gson.Gson
+import com.intellij.codeInsight.inline.completion.*
 import com.intellij.codeInsight.inline.completion.elements.InlineCompletionGrayTextElement
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -43,26 +43,32 @@ class LlmLsCompletionProvider : InlineCompletionProvider {
                         val model = settings.model
                         val tokenizerConfig = settings.tokenizer
                         val tokensToClear = settings.tokensToClear.split(",")
-                        val url = settings.endpoint
+                        val url = settings.url
                         val backend = settings.backendType.toString()
                         val contextWindow = settings.contextWindow
                         val tlsSkipVerifyInsecure = settings.tlsSkipVerifyInsecure
                         CompletionParams(
-                            textDocument = textDocument,
-                            position = position,
-                            requestBody = queryParams,
-                            fim = fimParams,
-                            apiToken = secrets.getSecretSetting(),
-                            model = model,
-                            tokensToClear = tokensToClear,
-                            tokenizerConfig = tokenizerConfig,
-                            url = url,
-                            backend = backend,
-                            contextWindow = contextWindow,
-                            tlsSkipVerifyInsecure = tlsSkipVerifyInsecure,
+                                textDocument = textDocument,
+                                position = position,
+                                requestBody = queryParams,
+                                fim = fimParams,
+                                apiToken = secrets.getSecretSetting(),
+                                model = model,
+                                tokensToClear = tokensToClear,
+                                tokenizerConfig = tokenizerConfig,
+                                url = url,
+                                backend = backend,
+                                contextWindow = contextWindow,
+                                tlsSkipVerifyInsecure = tlsSkipVerifyInsecure,
                         )
                     })
+
+                    val gson = Gson()
                     lspServer.requestExecutor.sendRequestAsync(LlmLsGetCompletionsRequest(lspServer, params)) { response ->
+                        val paramsJson = gson.toJson(params)
+                        val responseJson = gson.toJson(response)
+                        logger.info("completions for params: $paramsJson: $responseJson")
+
                         CoroutineScope(Dispatchers.Default).launch {
                             if (response != null) {
                                 for (completion in response.completions) {

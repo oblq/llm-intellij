@@ -21,10 +21,10 @@ class FimParams(
 )
 
 class QueryParams(
-    var max_new_tokens: UInt = 60u,
-    var temperature: Float = 0.2f,
-    var do_sample: Boolean = temperature > 0.2,
-    var top_p: Float = 0.95f,
+    var max_new_tokens: UInt? = 60u,
+    var temperature: Float? = 0.2f,
+    var do_sample: Boolean = temperature != null && temperature > 0.2,
+    var top_p: Float? = 0.95f,
     var stop_tokens: List<String>? = null,
 )
 

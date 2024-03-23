@@ -276,20 +276,36 @@ class LlmSettingsComponent {
         tokensToClear.text = tokens
     }
 
-    fun getMaxNewTokens(): UInt {
-        return maxNewTokens.text.toUInt()
+    fun getMaxNewTokens(): UInt? {
+        return if (maxNewTokens.text.isNotEmpty()) {
+            maxNewTokens.text.toUInt()
+        } else {
+            return null
+        }
     }
 
-    fun setMaxNewTokens(value: UInt) {
-        maxNewTokens.text = value.toString()
+    fun setMaxNewTokens(value: UInt?) {
+        if (value == null) {
+            maxNewTokens.text = ""
+        } else {
+            maxNewTokens.text = value.toString()
+        }
     }
 
-    fun getTemperature(): Float {
-        return temperature.text.toFloat()
+    fun getTemperature(): Float? {
+        return if (temperature.text.isNotEmpty()) {
+            temperature.text.toFloat()
+        } else {
+            null
+        }
     }
 
-    fun setTemperature(value: Float) {
-        temperature.text = value.toString()
+    fun setTemperature(value: Float?) {
+        if (value == null) {
+            temperature.text = ""
+        } else {
+            temperature.text = value.toString()
+        }
     }
 
     fun getTopP(): Float {
@@ -300,21 +316,12 @@ class LlmSettingsComponent {
         topP.text = value.toString()
     }
 
-     fun getStopTokens(): List<String>? {
-        val stopTokensStr = stopTokens.text
-        return if (stopTokensStr == "") {
-            null
-        } else {
-            stopTokensStr.split(",")
-        }
+     fun getStopTokens(): String {
+        return stopTokens.text
     }
 
-    fun setStopTokens(tokens: List<String>?) {
-        if (tokens == null) {
-            stopTokens.text = ""
-        } else {
-            stopTokens.text = tokens.joinToString(",")
-        }
+    fun setStopTokens(tokens: String) {
+        stopTokens.text = tokens
     }
 
     fun isFimEnabled(): Boolean {

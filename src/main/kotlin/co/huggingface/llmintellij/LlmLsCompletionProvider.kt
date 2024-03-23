@@ -69,12 +69,12 @@ class LlmLsCompletionProvider : InlineCompletionProvider {
                                     send(InlineCompletionGrayTextElement(completion.generated_text))
                                 }
                             } else {
-                                logger.error("could not get completions")
+                                logger.warn("completions response is null, look for an error in the logs")
                             }
                         }
                     }
                 } else {
-                    logger.error("could not find LLM language server")
+                    logger.error("lspServer not initialized!")
                 }
             }
             awaitClose()

@@ -276,11 +276,11 @@ class LlmSettingsComponent {
         tokensToClear.text = tokens
     }
 
-    fun getMaxNewTokens(): UInt? {
-        return if (maxNewTokens.text.isEmpty()) null else maxNewTokens.text.toUInt()
+    fun getMaxNewTokens(): Int? {
+        return if (maxNewTokens.text.isEmpty()) null else maxNewTokens.text.toInt()
     }
 
-    fun setMaxNewTokens(value: UInt?) {
+    fun setMaxNewTokens(value: Int?) {
         maxNewTokens.text = value?.toString() ?: ""
     }
 
@@ -383,54 +383,64 @@ class LlmSettingsComponent {
 
     fun getTokenizerConfig(): TokenizerConfig? {
         val type = tokenizerConfig.getItemAt(tokenizerConfig.selectedIndex)
-        return when (type) {
+        when (type) {
             "Hugging Face" -> {
-                TokenizerConfig.HuggingFace(tokenizerConfigHuggingFaceRepository.text)
+                val tokenizerConfig = TokenizerConfig()
+                tokenizerConfig.type = type
+                tokenizerConfig.repository = tokenizerConfigHuggingFaceRepository.text
+                return tokenizerConfig
             }
 
             "Local" -> {
-                TokenizerConfig.Local(tokenizerConfigLocalPath.text)
+                val tokenizerConfig = TokenizerConfig()
+                tokenizerConfig.type = type
+                tokenizerConfig.path = tokenizerConfigLocalPath.text
+                return tokenizerConfig
             }
 
             "Download" -> {
-                TokenizerConfig.Download(tokenizerConfigDownloadUrl.text, tokenizerConfigDownloadTo.text)
+                val tokenizerConfig = TokenizerConfig()
+                tokenizerConfig.type = type
+                tokenizerConfig.url = tokenizerConfigDownloadUrl.text
+                tokenizerConfig.to = tokenizerConfigDownloadTo.text
+                return tokenizerConfig
             }
 
             else -> {
-                null
+                return null
             }
         }
     }
 
     fun setTokenizerConfig(value: TokenizerConfig?) {
-        when (value) {
-            is TokenizerConfig.HuggingFace -> {
+        when (value?.type) {
+            "Hugging Face" -> {
                 tokenizerConfig.selectedItem = "Hugging Face"
                 tokenizerConfigHuggingFaceRepository.text = value.repository
             }
 
-            is TokenizerConfig.Local -> {
+            "Local" -> {
                 tokenizerConfig.selectedItem = "Local"
-                tokenizerConfigLocalPath.text = value.path
+                tokenizerConfigLocalPath.text = value.path ?: ""
             }
 
-            is TokenizerConfig.Download -> {
+            "Download" -> {
                 tokenizerConfig.selectedItem = "Download"
                 tokenizerConfigDownloadUrl.text = value.url
                 tokenizerConfigDownloadTo.text = value.to
             }
 
-            null -> {
+            else -> {
                 tokenizerConfig.selectedItem = "None"
             }
         }
     }
 
-    fun getContextWindow(): UInt {
-        return contextWindow.text.toUInt()
+    fun getContextWindow(): Int {
+        return contextWindow.text.toInt()
     }
 
-    fun setContextWindow(value: UInt) {
+    fun setContextWindow(value: Int) {
         contextWindow.text = value.toString()
     }
 

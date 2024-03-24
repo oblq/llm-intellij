@@ -68,7 +68,7 @@ class LlmSettingsConfigurable : Configurable {
         settings.lsp.version = settingsComponent?.getLspVersion() ?: ""
         settings.lsp.logLevel = settingsComponent?.getLspLogLevel() ?: ""
         settings.tokenizer = settingsComponent?.getTokenizerConfig()
-        settings.contextWindow = settingsComponent?.getContextWindow() ?: 0u
+        settings.contextWindow = settingsComponent?.getContextWindow() ?: 0
     }
 
     override fun reset() {

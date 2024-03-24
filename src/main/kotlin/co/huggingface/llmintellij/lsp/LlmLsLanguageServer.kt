@@ -11,24 +11,24 @@ import org.eclipse.lsp4j.services.LanguageServer
 import java.util.concurrent.CompletableFuture
 
 data class Position(
-        val line: Int,
-        val character: Int
+    val line: Int,
+    val character: Int
 )
 
 class CompletionParams(
-        val textDocument: TextDocumentIdentifier,
-        val position: Position,
-        val requestBody: QueryParams,
-        val ide: String = "jetbrains",
-        val fim: FimParams,
-        val apiToken: String?,
-        val model: String,
-        val backend: String = BackendType.OPENAI.toString(),
-        val url: String?,
-        val tokensToClear: List<String>,
-        val tokenizerConfig: TokenizerConfig?,
-        val contextWindow: UInt,
-        val tlsSkipVerifyInsecure: Boolean
+    val textDocument: TextDocumentIdentifier,
+    val position: Position,
+    val requestBody: QueryParams,
+    val ide: String = "jetbrains",
+    val fim: FimParams,
+    val apiToken: String?,
+    val model: String,
+    val backend: String = BackendType.OPENAI.toString(),
+    val url: String?,
+    val tokensToClear: List<String>,
+    val tokenizerConfig: TokenizerConfig?,
+    val contextWindow: Int,
+    val tlsSkipVerifyInsecure: Boolean
 )
 
 @JsonSegment("llm-ls")

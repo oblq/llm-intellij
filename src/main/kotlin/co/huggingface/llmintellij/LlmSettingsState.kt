@@ -14,18 +14,18 @@ class LspSettings {
 }
 
 class FimParams(
-        var enabled: Boolean = true,
-        var prefix: String = "<fim_prefix>",
-        var middle: String = "<fim_middle>",
-        var suffix: String = "<fim_suffix>",
+    var enabled: Boolean = true,
+    var prefix: String = "<fim_prefix>",
+    var middle: String = "<fim_middle>",
+    var suffix: String = "<fim_suffix>",
 )
 
 class QueryParams(
-        var max_new_tokens: UInt? = null,
-        var temperature: Float? = null,
-        var do_sample: Boolean = temperature != null && temperature > 0.2,
-        var top_p: Float? = 0.95f,
-        var stop_tokens: List<String>? = listOf("<|endoftext|>", "<file_sep>")
+    var max_new_tokens: Int? = null,
+    var temperature: Float? = null,
+    var do_sample: Boolean = temperature != null && temperature > 0.2,
+    var top_p: Float? = 0.95f,
+    var stop_tokens: List<String>? = listOf("<|endoftext|>", "<file_sep>")
 )
 
 enum class BackendType {
@@ -52,15 +52,17 @@ enum class BackendType {
     }
 }
 
-sealed class TokenizerConfig {
-    data class Local(val path: String) : TokenizerConfig()
-    data class HuggingFace(val repository: String) : TokenizerConfig()
-    data class Download(val url: String, val to: String) : TokenizerConfig()
+class TokenizerConfig {
+    var type: String? = null
+    var path: String? = null
+    var repository: String? = null
+    var url: String? = null
+    var to: String? = null
 }
 
 @State(
-        name = "co.huggingface.llmintellij.LlmSettingsState",
-        storages = [Storage("LlmSettingsPlugin.xml")]
+    name = "co.huggingface.llmintellij.LlmSettingsState",
+    storages = [Storage("LlmSettingsPlugin.xml")]
 )
 class LlmSettingsState : PersistentStateComponent<LlmSettingsState?> {
     var ghostTextEnabled = true
@@ -72,8 +74,8 @@ class LlmSettingsState : PersistentStateComponent<LlmSettingsState?> {
     var fim = FimParams()
     var tlsSkipVerifyInsecure = true
     var lsp = LspSettings()
-    var tokenizer: TokenizerConfig? = TokenizerConfig.HuggingFace("bigcode/starcoder2-15b")
-    var contextWindow = 16384u
+    var tokenizer: TokenizerConfig? = TokenizerConfig().apply { repository = "bigcode/starcoder2-15b" }
+    var contextWindow: Int = 16384
 
     override fun getState(): LlmSettingsState {
         return this

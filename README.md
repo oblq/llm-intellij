@@ -5,7 +5,7 @@
 - Add missing parameters to the settings in order to use the latest LLM-LS service and its backend variants.
 - Fix LLM-LS automatic download procedure and correctly handle `amd64` architecture.
 - Bump plugin version to 0.1.0.
-
+- Debounce inference requests.
 
 
 # LLM powered development for IntelliJ

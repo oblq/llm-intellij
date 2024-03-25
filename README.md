@@ -1,3 +1,13 @@
+### ***Ths is a working fork which adds the following fixes/features:***
+- Compatibility until Intellij builds 241.*.
+- Fix settings serialization issues so that all values are now correctly saved.
+- Bump LLM-LS version to the 0.5.2.
+- Add missing parameters to the settings in order to use the latest LLM-LS service and its backend variants.
+- Fix LLM-LS automatic download procedure and correctly handle `amd64` architecture.
+- Bump plugin version to 0.1.0.
+
+
+
 # LLM powered development for IntelliJ
 
 <!-- Plugin description -->
